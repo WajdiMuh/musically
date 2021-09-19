@@ -16,11 +16,24 @@ async def on_ready():
 
 @client.command(aliases=['p'])
 async def play(ctx,songname):
-    if len(musicqueue) == 0:
-        await ctx.send(f'playing {songname}')
+    caller = ctx.author
+    callervoice = caller.voice
+    if callervoice is not None:
+        callervc = callervoice.channel
+        botvoiceclient = client.voice_clients
+        if len(botvoiceclient) != 0:
+            if(botvoiceclient[0].channel != callervc):
+                await botvoiceclient[0].disconnect()
+                await callervc.connect()
+        else:
+            await callervc.connect()
+        if len(musicqueue) == 0:
+            await ctx.send(f'playing **{songname}**')
+        else:
+            await ctx.send(f'**{songname}** added to queue')
+        musicqueue.append(songname)
     else:
-        await ctx.send(f'{songname} added to queue')
-    musicqueue.append(songname)
+        await ctx.send(f'you have to be in a voice channel to play a song')
 
 @client.command()
 async def clear(ctx):
@@ -32,6 +45,20 @@ async def queue(ctx):
     if len(musicqueue) == 0:
         await ctx.send(f'the queue is empty')
     else:
-        await ctx.send("\n".join(musicqueue))
+        queuemsg = ''
+        for idx,song in enumerate(musicqueue):
+            queuemsg += f'{idx+1}. **{song}'
+            queuemsg += '**\n'
+        await ctx.send(f'{queuemsg}')
+
+@client.command(aliases=['s'])
+async def stop(ctx):
+    await ctx.send(f'stopping **{musicqueue[0]}**')
+
+@client.command(aliases=['d'])
+async def disconnect(ctx):
+    botvoiceclient = client.voice_clients
+    if len(botvoiceclient) != 0:
+        await botvoiceclient[0].disconnect()
 
 client.run(TOKEN)
