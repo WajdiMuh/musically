@@ -61,4 +61,21 @@ async def disconnect(ctx):
     if len(botvoiceclient) != 0:
         await botvoiceclient[0].disconnect()
 
+@client.check
+async def check_commands(ctx):
+    with open('banned.txt') as f:
+        bannedusers = f.read().splitlines()
+        if str(ctx.author) in bannedusers:
+            await ctx.send(f'{ctx.author.display_name} enta 5aneeth')
+            return False
+        else:
+            return True
+
+@client.event
+async def on_command_error(ctx, error):
+    if isinstance(error, commands.errors.CheckFailure):
+        pass
+    else:
+        print(error)
+
 client.run(TOKEN)
